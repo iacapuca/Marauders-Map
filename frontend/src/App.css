@@ -2,3 +2,34 @@ body {
   margin: 0;
   padding: 0;
 }
+
+.messeage-form {
+  position: absolute;
+  top: 100px;
+  right: 10px;
+  min-width: 275px;
+  max-width: 400px;
+}
+
+.card-ctrl-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  outline: none;
+  border: 0;
+  box-sizing: border-box;
+  background-color: white;
+  cursor: pointer;
+  position: absolute;
+  top: 100px;
+  right: 10px;
+  opacity: 100 !important;
+}
+.card-ctrl-icon > button:hover {
+  background-color: 0 !important;
+}

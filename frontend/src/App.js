@@ -3,6 +3,16 @@ import mapboxgl from "mapbox-gl";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import MapboxLanguage from "@mapbox/mapbox-gl-language";
 
+import Fade from '@material-ui/core/Fade';
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import CardHeader from '@material-ui/core/CardHeader';
+import Typography from '@material-ui/core/Typography';
+import IconButton from '@material-ui/core/IconButton';
+import CloseIcon from '@material-ui/icons/Close';
+import AddIcon from '@material-ui/icons/Add';
+
+
 import "./App.css";
 
 mapboxgl.accessToken =
@@ -15,9 +25,14 @@ class App extends Component {
       lng: 1,
       lat: 1,
       zoom: 1,
-      haveUsersLocation: false
+      haveUsersLocation: false,
+      cardVisible: true,
     };
   }
+
+  handleCloseClick = () => {
+    this.setState(state => ({ cardVisible: !state.cardVisible }));
+  };
 
   componentDidMount() {
     navigator.geolocation.getCurrentPosition(position => {
@@ -163,6 +178,7 @@ class App extends Component {
 
   render() {
     const { lng, lat, zoom } = this.state;
+    const cardVisible = this.state.cardVisible
 
     return (
       <div>
@@ -173,6 +189,38 @@ class App extends Component {
           ref={el => (this.mapContainer = el)}
           className="absolute top right left bottom"
         />
+        <Fade in={this.state.cardVisible}>
+          {cardVisible ? (
+          <Card raised={true} className="messeage-form">
+            <CardHeader 
+            title="Mapa do Maroto" 
+            action={
+                <IconButton
+                onClick={this.handleCloseClick}
+                aria-expanded={this.state.cardVisible}
+                aria-label="Fechar"
+                >
+                  <CloseIcon />
+                </IconButton>
+              }
+            />
+            <CardContent>
+            <Typography component="p">
+                Um experimento sobre como a vigilância massiva e câmeras de segurança impactam nossa vida.<br />
+                Para começar a mapear, clique em algum local no mapa onde você saiba que há uma câmera e preencha o formulário com as informações dela.<br />
+                <br />
+                Deseja conhecer mais sobre o projeto? Clique Aqui!
+              </Typography>
+            </CardContent>
+          </Card>
+          ) : (<div className="card-ctrl-icon">                <IconButton
+          onClick={this.handleCloseClick}
+          aria-expanded={this.state.cardVisible}
+          aria-label="Abrir Card"
+          >
+            <AddIcon />
+          </IconButton></div>)}
+        </Fade>
       </div>
     );
   }
