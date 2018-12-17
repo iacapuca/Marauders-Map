@@ -33,3 +33,7 @@ body {
 .card-ctrl-icon > button:hover {
   background-color: 0 !important;
 }
+
+.cctvType-form{
+  min-width: 125px !important;
+}

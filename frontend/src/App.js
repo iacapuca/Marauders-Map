@@ -12,6 +12,21 @@ import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import AddIcon from '@material-ui/icons/Add';
 
+import TextField from '@material-ui/core/TextField';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import Button from '@material-ui/core/Button';
+import Select from '@material-ui/core/Select';
+import InputLabel from '@material-ui/core/InputLabel';
+import FormControl from '@material-ui/core/FormControl';
+import MenuItem from '@material-ui/core/MenuItem';
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import FormLabel from '@material-ui/core/FormLabel';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 
 import "./App.css";
 
@@ -27,11 +42,27 @@ class App extends Component {
       zoom: 1,
       haveUsersLocation: false,
       cardVisible: true,
+      open: false,
+      lngLat: {lat:null,lng:null},
+      cctvType: '',
+      filiation: '',
     };
   }
 
+  handleChange = event => {
+    this.setState({ [event.target.name]: event.target.value });
+  };
+
   handleCloseClick = () => {
     this.setState(state => ({ cardVisible: !state.cardVisible }));
+  };
+
+  handleOpen = () => {
+    this.setState({ open: true });
+  };
+
+  handleClose = () => {
+    this.setState({ open: false });
   };
 
   componentDidMount() {
@@ -83,7 +114,8 @@ class App extends Component {
     });
 
     const geocoder = new MapboxGeocoder({
-      accessToken: mapboxgl.accessToken
+      accessToken: mapboxgl.accessToken,
+      placeholder: "Buscar"
     });
     map.addControl(geocoder);
 
@@ -170,6 +202,28 @@ class App extends Component {
       const { lng, lat } = map.getCenter();
       updateGeocoderProximity(lng, lat);
     });
+
+    var el = document.createElement('div');
+    el.className = 'marker';
+    el.style.height = '32px';
+    el.style.width = '32px';
+    el.style.backgroundRepeat = 'no-repeat';
+    el.style.backgroundPosition = 'center';
+    el.style.backgroundSize = 'cover';
+    el.style.backgroundImage = 'url("https://i.imgur.com/H5kO3O1.png")';
+
+    map.on("click", (e) => {
+      this.setState({ open: true , lngLat: e.lngLat});
+      console.log(this.state);
+      let marker
+      marker = new mapboxgl.Marker({
+        draggable: false,
+        element: el
+    })
+    .setLngLat([e.lngLat.lng, e.lngLat.lat])
+    .addTo(map);
+    });
+
   }
 
   componentWillUnmount() {
@@ -213,14 +267,96 @@ class App extends Component {
               </Typography>
             </CardContent>
           </Card>
-          ) : (<div className="card-ctrl-icon">                <IconButton
-          onClick={this.handleCloseClick}
-          aria-expanded={this.state.cardVisible}
-          aria-label="Abrir Card"
+          ) : (<div className="card-ctrl-icon">                
+          <IconButton
+            onClick={this.handleCloseClick}
+            aria-expanded={this.state.cardVisible}
+            aria-label="Abrir Card"
           >
             <AddIcon />
-          </IconButton></div>)}
+          </IconButton>
+          </div>)}
         </Fade>
+        <Dialog
+          open={this.state.open}
+          onClose={this.handleClose}
+          aria-labelledby="form-dialog-title"
+        >
+          <DialogTitle id="form-dialog-title">Criar Câmera</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Preencha o formulário abaixo para salvar uma câmera na localização escolhida(clicada)
+            </DialogContentText>
+            <TextField
+              autoFocus
+              margin="dense"
+              required
+              placeholder="Dê um nome para a câmera"
+              id="name-required"
+              label="Nome"
+              type="text"
+              fullWidth
+            />
+            <TextField
+              margin="dense"
+              required
+              defaultValue={this.state.lngLat}
+              id="location-required"
+              label="Localização"
+              type="text"
+              fullWidth
+            />
+            <FormControl className="cctvType-form">
+              <InputLabel htmlFor="cctvType-simple">Tipo de CCTV</InputLabel>
+              <Select
+                value={this.state.cctvType}
+                onChange={this.handleChange}
+                inputProps={{
+                  name: 'cctvType',
+                  id: 'cctvType-simple',
+                }}
+              >
+                <MenuItem value="">
+                  <em>Nenhuma das Opções</em>
+                </MenuItem>
+                <MenuItem value={'ANPR'}>ANPR</MenuItem>
+                <MenuItem value={'Dome'}>Dome</MenuItem>
+                <MenuItem value={'Bullet'}>Bullet</MenuItem>
+                <MenuItem value={'PTZ'}>Bullet</MenuItem>
+                <MenuItem value={'Thermal'}>Bullet</MenuItem>
+                <MenuItem value={'Noturna'}>Bullet</MenuItem>
+              </Select>
+            </FormControl>
+            <TextField
+              margin="dense"
+              id="visualAngle"
+              label="Ângulo visual"
+              type="number"
+              fullWidth
+            />
+            <FormControl component="fieldset">
+          <FormLabel component="legend">Filiação</FormLabel>
+          <RadioGroup
+            aria-label="Filiação"
+            name="filiation"
+            value={this.state.filiation}
+            onChange={this.handleChange}
+          >
+            <FormControlLabel value="Pública" control={<Radio />} label="Pública" />
+            <FormControlLabel value="Privada" control={<Radio />} label="Privada" />
+            <FormControlLabel value="Outro" control={<Radio />} label="Outro" />
+          </RadioGroup>
+        </FormControl>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={this.handleClose} color="secondary">
+              Cancelar
+            </Button>
+            <Button onClick={this.handleClose} color="primary" variant="contained">
+              Salvar
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
     );
   }
