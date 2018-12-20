@@ -3,30 +3,16 @@ import mapboxgl from "mapbox-gl";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import MapboxLanguage from "@mapbox/mapbox-gl-language";
 
-import Fade from '@material-ui/core/Fade';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
-import CardHeader from '@material-ui/core/CardHeader';
-import Typography from '@material-ui/core/Typography';
-import IconButton from '@material-ui/core/IconButton';
-import CloseIcon from '@material-ui/icons/Close';
-import AddIcon from '@material-ui/icons/Add';
+import Fade from "@material-ui/core/Fade";
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
+import CardHeader from "@material-ui/core/CardHeader";
+import Typography from "@material-ui/core/Typography";
+import IconButton from "@material-ui/core/IconButton";
+import CloseIcon from "@material-ui/icons/Close";
+import AddIcon from "@material-ui/icons/Add";
 
-import TextField from '@material-ui/core/TextField';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Button from '@material-ui/core/Button';
-import Select from '@material-ui/core/Select';
-import InputLabel from '@material-ui/core/InputLabel';
-import FormControl from '@material-ui/core/FormControl';
-import MenuItem from '@material-ui/core/MenuItem';
-import Radio from '@material-ui/core/Radio';
-import RadioGroup from '@material-ui/core/RadioGroup';
-import FormLabel from '@material-ui/core/FormLabel';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
+import CameraDialog from "./Components/CameraDialog/CameraDialog"
 
 import "./App.css";
 
@@ -42,17 +28,12 @@ class App extends Component {
       zoom: 1,
       haveUsersLocation: false,
       cardVisible: true,
-      open: false,
-      lngLat: {lat:null,lng:null},
-      cctvType: '',
-      filiation: '',
+      cameraDialogVisible: false,
+      lngLat: { lat: null, lng: null },
+      cctvType: "",
+      filiation: ""
     };
   }
-
-  handleChange = event => {
-    this.setState({ [event.target.name]: event.target.value });
-  };
-
   handleCloseClick = () => {
     this.setState(state => ({ cardVisible: !state.cardVisible }));
   };
@@ -62,34 +43,15 @@ class App extends Component {
   };
 
   handleClose = () => {
-    this.setState({ open: false });
+    this.setState({ cameraDialogVisible: false });
   };
 
   componentDidMount() {
-    navigator.geolocation.getCurrentPosition(position => {
-      this.setState({
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
-        zoom: 15.5
-      });
-      map.flyTo(
-        {
-          center: [this.state.lng, this.state.lat],
-          zoom: this.state.zoom,
-          speed: 1,
-          easing(t) {
-            return t;
-          }
-        },
-        updateGeocoderProximity()
-      );
-    }, () => {
-      fetch('https://ipapi.co/json')
-      .then(res => res.json())
-      .then(location => {
+    navigator.geolocation.getCurrentPosition(
+      position => {
         this.setState({
-          lat: location.latitude,
-          lng: location.longitude,
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
           zoom: 15.5
         });
         map.flyTo(
@@ -103,8 +65,30 @@ class App extends Component {
           },
           updateGeocoderProximity()
         );
-      })
-    });
+      },
+      () => {
+        fetch("https://ipapi.co/json")
+          .then(res => res.json())
+          .then(location => {
+            this.setState({
+              lat: location.latitude,
+              lng: location.longitude,
+              zoom: 15.5
+            });
+            map.flyTo(
+              {
+                center: [this.state.lng, this.state.lat],
+                zoom: this.state.zoom,
+                speed: 1,
+                easing(t) {
+                  return t;
+                }
+              },
+              updateGeocoderProximity()
+            );
+          });
+      }
+    );
 
     const map = new mapboxgl.Map({
       container: this.mapContainer,
@@ -203,27 +187,26 @@ class App extends Component {
       updateGeocoderProximity(lng, lat);
     });
 
-    var el = document.createElement('div');
-    el.className = 'marker';
-    el.style.height = '32px';
-    el.style.width = '32px';
-    el.style.backgroundRepeat = 'no-repeat';
-    el.style.backgroundPosition = 'center';
-    el.style.backgroundSize = 'cover';
+    var el = document.createElement("div");
+    el.className = "marker";
+    el.style.height = "32px";
+    el.style.width = "32px";
+    el.style.backgroundRepeat = "no-repeat";
+    el.style.backgroundPosition = "center";
+    el.style.backgroundSize = "cover";
     el.style.backgroundImage = 'url("https://i.imgur.com/H5kO3O1.png")';
 
-    map.on("click", (e) => {
-      this.setState({ open: true , lngLat: e.lngLat});
+    map.on("click", e => {
+      this.setState({ cameraDialogVisible: true, lngLat: e.lngLat });
       console.log(this.state);
-      let marker
+      let marker;
       marker = new mapboxgl.Marker({
         draggable: false,
         element: el
-    })
-    .setLngLat([e.lngLat.lng, e.lngLat.lat])
-    .addTo(map);
+      })
+        .setLngLat([e.lngLat.lng, e.lngLat.lat])
+        .addTo(map);
     });
-
   }
 
   componentWillUnmount() {
@@ -232,7 +215,7 @@ class App extends Component {
 
   render() {
     const { lng, lat, zoom } = this.state;
-    const cardVisible = this.state.cardVisible
+    const cardVisible = this.state.cardVisible;
 
     return (
       <div>
@@ -245,118 +228,49 @@ class App extends Component {
         />
         <Fade in={this.state.cardVisible}>
           {cardVisible ? (
-          <Card raised={true} className="messeage-form">
-            <CardHeader 
-            title="Mapa do Maroto" 
-            action={
-                <IconButton
+            <Card raised={true} className="messeage-form">
+              <CardHeader
+                title="Mapa do Maroto"
+                action={
+                  <IconButton
+                    onClick={this.handleCloseClick}
+                    aria-expanded={this.state.cardVisible}
+                    aria-label="Fechar"
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                }
+              />
+              <CardContent>
+                <Typography component="p">
+                  Um experimento sobre como a vigilância massiva e câmeras de
+                  segurança impactam nossa vida.
+                  <br />
+                  Para começar a mapear, clique em algum local no mapa onde você
+                  saiba que há uma câmera e preencha o formulário com as
+                  informações dela.
+                  <br />
+                  <br />
+                  Deseja conhecer mais sobre o projeto? Clique Aqui!
+                </Typography>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="card-ctrl-icon">
+              <IconButton
                 onClick={this.handleCloseClick}
                 aria-expanded={this.state.cardVisible}
-                aria-label="Fechar"
-                >
-                  <CloseIcon />
-                </IconButton>
-              }
-            />
-            <CardContent>
-            <Typography component="p">
-                Um experimento sobre como a vigilância massiva e câmeras de segurança impactam nossa vida.<br />
-                Para começar a mapear, clique em algum local no mapa onde você saiba que há uma câmera e preencha o formulário com as informações dela.<br />
-                <br />
-                Deseja conhecer mais sobre o projeto? Clique Aqui!
-              </Typography>
-            </CardContent>
-          </Card>
-          ) : (<div className="card-ctrl-icon">                
-          <IconButton
-            onClick={this.handleCloseClick}
-            aria-expanded={this.state.cardVisible}
-            aria-label="Abrir Card"
-          >
-            <AddIcon />
-          </IconButton>
-          </div>)}
-        </Fade>
-        <Dialog
-          open={this.state.open}
-          onClose={this.handleClose}
-          aria-labelledby="form-dialog-title"
-        >
-          <DialogTitle id="form-dialog-title">Criar Câmera</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              Preencha o formulário abaixo para salvar uma câmera na localização escolhida(clicada)
-            </DialogContentText>
-            <TextField
-              autoFocus
-              margin="dense"
-              required
-              placeholder="Dê um nome para a câmera"
-              id="name-required"
-              label="Nome"
-              type="text"
-              fullWidth
-            />
-            <TextField
-              margin="dense"
-              required
-              defaultValue={this.state.lngLat}
-              id="location-required"
-              label="Localização"
-              type="text"
-              fullWidth
-            />
-            <FormControl className="cctvType-form">
-              <InputLabel htmlFor="cctvType-simple">Tipo de CCTV</InputLabel>
-              <Select
-                value={this.state.cctvType}
-                onChange={this.handleChange}
-                inputProps={{
-                  name: 'cctvType',
-                  id: 'cctvType-simple',
-                }}
+                aria-label="Abrir Card"
               >
-                <MenuItem value="">
-                  <em>Nenhuma das Opções</em>
-                </MenuItem>
-                <MenuItem value={'ANPR'}>ANPR</MenuItem>
-                <MenuItem value={'Dome'}>Dome</MenuItem>
-                <MenuItem value={'Bullet'}>Bullet</MenuItem>
-                <MenuItem value={'PTZ'}>Bullet</MenuItem>
-                <MenuItem value={'Thermal'}>Bullet</MenuItem>
-                <MenuItem value={'Noturna'}>Bullet</MenuItem>
-              </Select>
-            </FormControl>
-            <TextField
-              margin="dense"
-              id="visualAngle"
-              label="Ângulo visual"
-              type="number"
-              fullWidth
-            />
-            <FormControl component="fieldset">
-          <FormLabel component="legend">Filiação</FormLabel>
-          <RadioGroup
-            aria-label="Filiação"
-            name="filiation"
-            value={this.state.filiation}
-            onChange={this.handleChange}
-          >
-            <FormControlLabel value="Pública" control={<Radio />} label="Pública" />
-            <FormControlLabel value="Privada" control={<Radio />} label="Privada" />
-            <FormControlLabel value="Outro" control={<Radio />} label="Outro" />
-          </RadioGroup>
-        </FormControl>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={this.handleClose} color="secondary">
-              Cancelar
-            </Button>
-            <Button onClick={this.handleClose} color="primary" variant="contained">
-              Salvar
-            </Button>
-          </DialogActions>
-        </Dialog>
+                <AddIcon />
+              </IconButton>
+            </div>
+          )}
+        </Fade>
+        <CameraDialog 
+          cameraDialogVisible={this.state.cameraDialogVisible} 
+          handleClose={this.handleClose}
+        />
       </div>
     );
   }
